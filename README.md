@@ -1,6 +1,7 @@
 # Have Fun with Machine Learning: A Guide for Beginners
+Also available in [Chinese (Traditional)](README_zh-tw.md).
 
-##Preface
+## Preface
 
 This is a **hands-on guide** to machine learning for programmers with *no background* in
 AI. Using a neural network doesn’t require a PhD, and you don’t need to be the person who
@@ -32,7 +33,7 @@ important details, please send a pull request.
 
 With all of that out the way, let me show you how to do some tricks on your bike!
 
-##Overview
+## Overview
 
 Here’s what we’re going to explore:
 
@@ -61,9 +62,13 @@ which introduces the concepts of neural networks using intuitive examples.
 Convolutional Neural Networks like we'll be using
 * If you’d rather have a bit more theory, I’d recommend [this online book](http://neuralnetworksanddeeplearning.com/chap1.html) by [Michael Nielsen](http://michaelnielsen.org/).
 
-##Setup
+## Setup
 
-###Installing Caffe
+Installing the software we'll use (Caffe and DIGITS) can be frustrating, depending on your platform
+and OS version.  By far the easiest way to do it is using Docker.  Below we examine how to do it with Docker,
+as well as how to do it natively.
+
+### Option 1a: Installing Caffe Natively
 
 First, we’re going to be using the [Caffe deep learning framework](http://caffe.berkeleyvision.org/)
 from the Berkely Vision and Learning Center (BSD licensed).
@@ -86,7 +91,7 @@ training and validating your network a lot easier.  We’ll be using
 [nVidia’s DIGITS](https://developer.nvidia.com/digits) tool below for just this purpose.
 
 Caffe can be a bit of work to get installed.  There are [installation instructions](http://caffe.berkeleyvision.org/installation.html)
-for various platforms, including some prebuilt Docker or AWS configurations.
+for various platforms, including some prebuilt Docker or AWS configurations.  
 
 **NOTE:** when making my walkthrough, I used the following non-released version of Caffe from their Github repo:
 https://github.com/BVLC/caffe/commit/5a201dd960840c319cefd9fa9e2a40d2c76ddd73
@@ -96,9 +101,7 @@ your progress at various steps in the build.  It took me a couple of days
 of trial and error.  There are a dozen guides I followed, each with slightly
 different problems.  In the end I found [this one](https://gist.github.com/doctorpangloss/f8463bddce2a91b949639522ea1dcbe4) to be the closest.
 I’d also recommend [this post](https://eddiesmo.wordpress.com/2016/12/20/how-to-set-up-caffe-environment-and-pycaffe-on-os-x-10-12-sierra/),
-which is quite recent and links to many of the same discussions I saw. For readers of Chinese,
-[BirkhoffLee](https://github.com/BirkhoffLee) has also suggested his
-[complete guide](https://blog.birkhoff.me/macos-sierra-10-12-2-build-caffe) for how to build Caffe on macOS Sierra, written in Chinese.
+which is quite recent and links to many of the same discussions I saw. 
 
 Getting Caffe installed is by far the hardest thing we'll do, which is pretty
 neat, since you’d assume the AI aspects would be harder!  Don’t give up if you have
@@ -127,7 +130,7 @@ there will be a `build/` dir which contains everything you need to run caffe,
 the Python bindings, etc.  The parent dir that contains `build/` will be your
 `CAFFE_ROOT` (we’ll need this later).
 * Running `make test && make runtest` should pass
-* After installing all the Python deps (doing `for req in $(cat requirements.txt); do pip install $req; done` in `python/`),
+* After installing all the Python deps (doing `pip install -r requirements.txt` in `python/`),
 running `make pycaffe && make pytest` should pass
 * You should also run `make distribute` in order to create a distributable version of caffe with all necessary headers, binaries, etc. in `distribute/`.
 
@@ -152,7 +155,7 @@ At this point, we have everything we need to train, test, and program with neura
 networks.  In the next section we’ll add a user-friendly, web-based front end to
 Caffe called DIGITS, which will make training and testing our networks much easier.
 
-###Installing DIGITS
+### Option 1b: Installing DIGITS Natively
 
 nVidia’s [Deep Learning GPU Training System, or DIGITS](https://github.com/NVIDIA/DIGITS),
 is BSD-licensed Python web app for training neural networks.  While it’s
@@ -189,7 +192,27 @@ or modify the DIGITS startup script(s) to use the proper binary on your system.
 
 Once the server is started, you can do everything else via your web browser at http://localhost:5000, which is what I'll do below.
 
-##Training a Neural Network
+### Option 2: Caffe and DIGITS using Docker
+
+Install [Docker](https://www.docker.com/), if not already installed, then run the following command
+in order to pull and run a full Caffe + Digits container.  A few things to note:
+* make sure port 8080 isn't allocated by another program. If so, change it to any other port you want.
+* change `/path/to/this/repository` to the location of this cloned repo, and `/data/repo` within the container
+will be bound to this directory.  This is useful for accessing the images discussed below.
+
+```bash
+docker run --name digits -d -p 8080:5000 -v /path/to/this/repository:/data/repo kaixhin/digits
+```
+
+Now that we have our container running you can open up your web browser and open `http://localhost:8080`. Everything in the repository is now in the container directory `/data/repo`.  That's it. You've now got Caffe and DIGITS working.
+
+If you need shell access, use the following command:
+
+```bash
+docker exec -it digits /bin/bash
+```
+
+## Training a Neural Network
 
 Training a neural network involves a few steps:
 
@@ -208,7 +231,7 @@ You need at least 2 categories, but could have many more (some of the networks
 we’ll use were trained on 1000+ image categories).  Our goal is to be able to
 give an image to our network and have it tell us whether it’s a Dolphin or a Seahorse.
 
-###Prepare the Dataset
+### Prepare the Dataset
 
 The easiest way to begin is to divide your images into a categorized directory layout:
 
@@ -321,7 +344,7 @@ lot of computing power to process everything.
 
 ### Training: Attempt 2, Fine Tuning AlexNet
 
-####How Fine Tuning works
+#### How Fine Tuning works
 
 Designing a neural network from scratch, collecting data sufficient to train
 it (e.g., millions of images), and accessing GPUs for weeks to complete the
@@ -368,7 +391,7 @@ might need to fix some of the layers, might need to insert new layers, etc. Howe
 my experience is that it “Just Works” much of the time, and it’s worth you simply doing
 an experiment to see what you can achieve using our naive approach.
 
-####Uploading Pretrained Networks
+#### Uploading Pretrained Networks
 
 In our first attempt, we used AlexNet’s architecture, but started with random
 weights in the network’s layers.  What we’d like to do is download and use a
@@ -409,7 +432,7 @@ Repeat this process for both AlexNet and GoogLeNet, as we’ll use them both in 
 The [Caffe Model Zoo](http://caffe.berkeleyvision.org/model_zoo.html) has quite a few other
 pretrained networks that could be used, see https://github.com/BVLC/caffe/wiki/Model-Zoo.
 
-####Fine Tuning AlexNet for Dolphins and Seahorses
+#### Fine Tuning AlexNet for Dolphins and Seahorses
 
 Training a network using a pretrained Caffe Model is similar to starting from scratch,
 though we have to make a few adjustments.  First, we’ll adjust the **Base Learning Rate**
@@ -709,7 +732,7 @@ performs amazing well--the best so far:
 
 ![Model Attempt 3 Classify 3](images/model-attempt3-classify3.png?raw=true "Model Attempt 3 Classify 3")
 
-##Using our Model
+## Using our Model
 
 With our network trained and tested, it’s time to download and use it.  Each of the models
 we trained in DIGITS has a **Download Model** button, as well as a way to select different
@@ -774,7 +797,7 @@ for this in the [Caffe examples](https://github.com/BVLC/caffe/tree/master/examp
 For a classification version that uses the Python interface, DIGITS includes a [nice example](https://github.com/NVIDIA/DIGITS/tree/master/examples/classification).  There's also a fairly
 [well documented Python walkthrough](https://github.com/BVLC/caffe/blob/master/examples/00-classification.ipynb) in the Caffe examples.
 
-###Python example
+### Python example
 
 Let's write a program that uses our fine-tuned GoogLeNet model to classify the untrained images
 we have in [data/untrained-samples](data/untrained-samples).  I've cobbled this together based on
@@ -1013,7 +1036,7 @@ Let's look at how each of our three attempts did with this challenge:
 |[seahorse2.jpg](data/untrained-samples/seahorse2.jpg)| 0% | 100% |  :sunglasses: |
 |[seahorse3.jpg](data/untrained-samples/seahorse3.jpg)| 0.02% | 99.98% |  :sunglasses: |
 
-##Conclusion
+## Conclusion
 
 It’s amazing how well our model works, and what’s possible by fine tuning a pretrained network.
 Obviously our dolphin vs. seahorse example is contrived, and the dataset overly limited--we really
